@@ -22,7 +22,20 @@ static int nr_entries, alloc_entries;
 static int background_id = -1;
 
 static const char hhhconf_t2_usage[] =
-"Usage: hhhconf-t2 <filename>\n";
+"Usage: hhhconf-t2 [options] <key> [<value>]\n"
+"If only <key> is provided, get associated value\n"
+"If <value> is provided, set key/value pair\n"
+"Options:\n"
+"  -f <file>     Specify tint2rc filename\n"
+"  -s <section>  Specify section name, e.g. panel, taskbar, task, task_active\n"
+"                This is only required for 'background' key/value pairs\n";
+
+static char *sections[] = {
+	"panel", "taskbar", "taskbar_active", "taskbar_name",
+	"taskbar_name_active", "task", "task_active", "task_urgent",
+	"task_iconified", "systray", "launcher", "launcher_icon", "clock",
+	"battery", "tooltip", NULL
+};
 
 static void usage(void)
 {
@@ -158,7 +171,53 @@ static void read_file(const char *filename)
 	fclose(fp);
 }
 
-static void get_value(const char *key)
+static void write_file(const char *filename)
+{
+	FILE *fp;
+	int i;
+
+	fp = fopen(filename, "w");
+	if (!fp)
+		die("could not open file %s", filename);
+	for (i = 0; i < nr_entries; i++)
+		fprintf(fp, "%s\n", entries[i].line);
+	fclose(fp);
+}
+
+static void validate_section(const char *section)
+{
+	int i;
+
+	if (!section)
+		die("NULL passed to function '%s'", __func__);
+	for (i = 0; sections[i]; i++)
+		if (!strcmp(sections[i], section))
+			return;
+	die("section '%s' is not valid", section);
+}
+
+static void set_value(const char* section, const char *key, const char *value)
+{
+	int i;
+
+	if (!key || !value)
+		die("NULL passed to function '%s'", __func__);
+	for (i = 0; i < nr_entries; i++) {
+		if (!entries[i].key)
+			continue;
+		if (!strcmp(entries[i].key, key))
+			goto set_line;
+	}
+	fprintf(stderr, "key not found\n");
+	return;
+set_line:
+	snprintf(entries[i].line, sizeof(entries[i].line), "%s = %s", key, value);
+	fprintf(stderr, "set: %s\n", entries[i].line);
+	strlcpy(entries[i].key, key, sizeof(entries[i].key));
+	strlcpy(entries[i].value, value, sizeof(entries[i].value));
+}
+
+static void get_value(const char* section, const char *key)
 {
 	int i;
 
@@ -176,8 +235,50 @@ static void get_value(const char *key)
 
 int main(int argc, char **argv)
 {
+	int i;
+	char *filename = NULL, *section = NULL, *key = NULL, *value = NULL;
+
 	if (argc < 2)
 		usage();
-	read_file(argv[1]);
-	get_value("panel_items");
+	for (i = 1; i < argc; i++) {
+		const char *arg = argv[i];
+
+		if (*arg == '-') {
+			switch (arg[1]) {
+			case 'f':
+				filename = argv[i + 1];
+				i++;
+				continue;
+			case 's':
+				section = argv[i + 1];
+				i++;
+				continue;
+			}
+			die("unknown argument '%s'", arg);
+		}
+		if (!key) {
+			key = (char *)arg;
+			continue;
+		}
+		if (!value) {
+			value = (char *)arg;
+			continue;
+		}
+		die("too many arguments '%s'", arg);
+	}
+	if (!key)
+		usage();
+	if (section)
+		validate_section(section);
+
+	read_file(filename);
+
+	if (!value) {
+		get_value(section, key);
+	} else {
+		set_value(section, key, value);
+		write_file(filename);
+	}
+
+	return (EXIT_SUCCESS);
 }
