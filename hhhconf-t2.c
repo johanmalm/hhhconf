@@ -9,6 +9,9 @@
 #include <stdarg.h>
 #include <string.h>
 #include <ctype.h>
+#include <stdbool.h>
+#include <errno.h>
+#include <limits.h>
 
 struct entry {
 	char line[1000];
@@ -19,7 +22,7 @@ struct entry {
 
 static struct entry *entries;
 static int nr_entries, alloc_entries;
-static int background_id = -1;
+static int background_id;
 
 static const char hhhconf_t2_usage[] =
 "Usage: hhhconf-t2 [options] <key> [<value>]\n"
@@ -35,6 +38,12 @@ static char *sections[] = {
 	"taskbar_name_active", "task", "task_active", "task_urgent",
 	"task_iconified", "systray", "launcher", "launcher_icon", "clock",
 	"battery", "tooltip", NULL
+};
+
+static char *background_keys[] = {
+	"rounded", "border_width", "border_sides", "background_color",
+	"border_color", "background_color_hover", "border_color_hover",
+	"background_color_pressed", "border_color_pressed", NULL
 };
 
 static void usage(void)
@@ -114,6 +123,18 @@ static void split(char *line, char **left, char **right, char delim)
 		p[0] = '\0';
 }
 
+static bool is_background_key(const char *key)
+{
+	int i;
+
+	if (!key)
+		die("NULL passed to function '%s'", __func__);
+	for (i = 0; background_keys[i]; i++)
+		if (!strcmp(background_keys[i], key))
+			return true;
+	return false;
+}
+
 static struct entry *add_entry(void)
 {
 	struct entry *entry;
@@ -147,7 +168,10 @@ static void process_line(char *line)
 	 */
 	if (!strcmp(key, "rounded"))
 		++background_id;
-	entry->bg_id = background_id;
+	if (is_background_key(key))
+		entry->bg_id = background_id;
+	else
+		entry->bg_id = 0;
 }
 
 static void read_file(const char *filename)
@@ -184,6 +208,109 @@ static void write_file(const char *filename)
 	fclose(fp);
 }
 
+static bool get_int(int *ret, const char *string)
+{
+	long res;
+	char *endptr;
+
+	if (!string || *string == '\0')
+		fprintf(stderr, "warn: %s empty string", __func__);
+	errno = 0;
+	res = strtol(string, &endptr, 10);
+	if (errno != 0) {
+		fprintf(stderr, "warn: %s(): failed\n", __func__);
+	} else if (*endptr != '\0') {
+		fprintf(stderr, "warn: %s(): nonnumeric character\n", __func__);
+	} else if (res > INT_MAX || res < INT_MIN) {
+		fprintf(stderr, "warn: %s(): integer out of range\n", __func__);
+	} else {
+		*ret = (int)res;
+		return true;
+	}
+	return false;
+}
+
+/*
+ * Return the value of key "<section>_background_id"
+ * Return -1 if background id cannot be found
+ */
+static int section_bg_id(const char *section)
+{
+	int i;
+	char _key[1000];
+
+	if (!section)
+		return -1;
+	snprintf(_key, sizeof(_key), "%s_background_id", section);
+	for (i = 0; i < nr_entries; i++) {
+		if (!entries[i].key)
+			continue;
+		if (!strcmp(entries[i].key, _key)) {
+			int ret;
+			if (!get_int(&ret, entries[i].value))
+				die("badness at: %s = %s", _key,
+				    entries[i].value);
+			return ret;
+		}
+	}
+	fprintf(stderr, "no background id for section '%s'\n", section);
+	return -1;
+}
+
+/*
+ * We compare "entry.key" + "key", and if appropriate also check that the
+ * background_id is right
+ */
+static bool is_match(const char *section, const char *key, struct entry entry)
+{
+	if (!entry.key)
+		return false;
+	if (is_background_key(key))
+		if (entry.bg_id != section_bg_id(section))
+			return false;
+	if (!strcmp(entry.key, key))
+		return true;
+	return false;
+}
+
+static void set_value(const char *section, const char *key, const char *value)
+{
+	int i;
+
+	if (!key || !value)
+		die("NULL passed to function '%s'", __func__);
+	for (i = 0; i < nr_entries; i++) {
+		if (!is_match(section, key, entries[i]))
+			continue;
+		goto set_line;
+	}
+	fprintf(stderr, "key not found\n");
+	return;
+set_line:
+	snprintf(entries[i].line, sizeof(entries[i].line), "%s = %s",
+		 key, value);
+	fprintf(stderr, "info: ");
+	if (section)
+		fprintf(stderr, "%s.", section);
+	fprintf(stderr, "%s\n", entries[i].line);
+	strlcpy(entries[i].key, key, sizeof(entries[i].key));
+	strlcpy(entries[i].value, value, sizeof(entries[i].value));
+}
+
+static void get_value(const char *section, const char *key)
+{
+	int i;
+
+	if (!key)
+		die("NULL passed to function '%s'", __func__);
+	for (i = 0; i < nr_entries; i++) {
+		if (!is_match(section, key, entries[i]))
+			continue;
+		printf("%s\n", entries[i].value);
+		break;
+	}
+}
+
 static void validate_section(const char *section)
 {
 	int i;
@@ -194,43 +321,6 @@ static void validate_section(const char *section)
 		if (!strcmp(sections[i], section))
 			return;
 	die("section '%s' is not valid", section);
-}
-
-static void set_value(const char* section, const char *key, const char *value)
-{
-	int i;
-
-	if (!key || !value)
-		die("NULL passed to function '%s'", __func__);
-	for (i = 0; i < nr_entries; i++) {
-		if (!entries[i].key)
-			continue;
-		if (!strcmp(entries[i].key, key))
-			goto set_line;
-	}
-	fprintf(stderr, "key not found\n");
-	return;
-set_line:
-	snprintf(entries[i].line, sizeof(entries[i].line), "%s = %s", key, value);
-	fprintf(stderr, "set: %s\n", entries[i].line);
-	strlcpy(entries[i].key, key, sizeof(entries[i].key));
-	strlcpy(entries[i].value, value, sizeof(entries[i].value));
-}
-
-static void get_value(const char* section, const char *key)
-{
-	int i;
-
-	if (!key)
-		die("NULL passed to function '%s'", __func__);
-	for (i = 0; i < nr_entries; i++) {
-		if (!entries[i].key)
-			continue;
-		if (!strcmp(entries[i].key, key)) {
-			printf("%s\n", entries[i].value);
-			break;
-		}
-	}
 }
 
 int main(int argc, char **argv)
@@ -270,15 +360,12 @@ int main(int argc, char **argv)
 		usage();
 	if (section)
 		validate_section(section);
-
 	read_file(filename);
-
 	if (!value) {
 		get_value(section, key);
 	} else {
 		set_value(section, key, value);
 		write_file(filename);
 	}
-
-	return (EXIT_SUCCESS);
+	return EXIT_SUCCESS;
 }
