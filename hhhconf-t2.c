@@ -20,14 +20,16 @@ struct entry {
 	int bg_id;
 };
 
+#define DEFAULT_TINT2RC ".config/tint2/tint2rc"
+
 static struct entry *entries;
 static int nr_entries, alloc_entries;
 static int background_id;
 
 static const char hhhconf_t2_usage[] =
 "Usage: hhhconf-t2 [options] <key> [<value>]\n"
-"If only <key> is provided, get associated value\n"
-"If <value> is provided, set key/value pair\n"
+"Get value - if only <key> is provided\n"
+"Set key/value pair - if <value> is provided too\n"
 "Options:\n"
 "  -f <file>     Specify tint2rc filename\n"
 "  -s <section>  Specify section name, e.g. panel, taskbar, task, task_active\n"
@@ -326,17 +328,20 @@ static void validate_section(const char *section)
 int main(int argc, char **argv)
 {
 	int i;
-	char *filename = NULL, *section = NULL, *key = NULL, *value = NULL;
+	char *section = NULL, *key = NULL, *value = NULL;
+	char filename[1000];
 
 	if (argc < 2)
 		usage();
+	snprintf(filename, sizeof(filename), "%s/%s",
+		 getenv("HOME"), DEFAULT_TINT2RC);
 	for (i = 1; i < argc; i++) {
 		const char *arg = argv[i];
 
 		if (*arg == '-') {
 			switch (arg[1]) {
 			case 'f':
-				filename = argv[i + 1];
+				strlcpy(filename, argv[i + 1], sizeof(filename));
 				i++;
 				continue;
 			case 's':
