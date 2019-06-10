@@ -1,0 +1,98 @@
+#!/usr/bin/env bash
+#
+# hhhconf - a config tool for tint2
+#
+# shellcheck disable=2154 source=/dev/null
+
+die () {
+	printf '\033[31mfatal:\033[m %b\n' "$@" >&2
+	exit 1
+}
+
+log () {
+	printf '\033[32m=>\033[m %s\n' "$@"
+}
+
+read_sleep () {
+	read -rst "${1:-1}" -N 999
+	return 0
+}
+
+pywal_tint2 () {
+	local wal_colours="${HOME}/.cache/wal/colors.sh"
+	[[ -e $wal_colours ]] || die "cannot find $wal_colours"
+	. "$wal_colours"
+	hhhconf-t2 -s panel background_color "$background 100"
+	hhhconf-t2 -s task_active background_color "$color1 100"
+	hhhconf-t2 task_background_id 0
+}
+
+
+hard_restart () {
+	log "restart $1"
+	killall "$1" ; nohup "$1" >/dev/null 2>&1 &
+	disown
+}
+
+print_commands () {
+	printf "%b" "\
+h = show available commands\n\
+p = apply pywal to tint2\n\
+t = tint2 restart soft\n\
+T = tint2 restart hard\n\
+- = sleep one second\n\
+q = quit\n"
+}
+
+bad_command () {
+	log "($1) is not a recognised command"
+	print_commands
+}
+
+# commands to possibly add
+#
+# bl-user-setup --refresh
+
+prompt () {
+	local cmd=
+	printf "%b" "\033[32mWhat now>\033[m "
+	read -r cmd
+
+	# process one character at a time
+	for ((i=0;i<${#cmd};i++)); do
+		case "${cmd:$i:1}" in
+			t) killall -SIGUSR2 tint2 ;;
+			T) hard_restart tint2 ;;
+			p) pywal_tint2 ;;
+			h|\?) print_commands ;;
+			q) return 1 ;;
+			-) read_sleep 1 ;;
+			'') ;;
+			*) bad_command "$cmd" ;;
+		esac
+	done
+}
+
+await_user_command () {
+	print_commands
+	while :
+	do
+		prompt || break
+	done
+}
+
+args() {
+	case $1 in
+		-h|--help)
+			printf "%b\n" "usage: hhhconf"
+			exit
+			;;
+	esac
+}
+
+main() {
+	args "$@"
+	await_user_command
+}
+
+main "$@"
