@@ -1,8 +1,12 @@
 CFLAGS  += -g -Wall -std=c11 -pedantic
-
-PROGS = hhhconf-t2
+prefix  ?= $(HOME)
+bindir   = $(prefix)/bin
+PROGS    = hhhconf-t2
 
 all: $(PROGS)
+
+install: $(PROGS)
+	install -m755 $(PROGS) hhhconf $(DESTDIR)$(bindir)
 
 hhhconf-t2: hhhconf-t2.o
 	$(CC) $(CFLAGS) -o $@ $^
