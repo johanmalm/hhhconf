@@ -14,3 +14,6 @@ hhhconf-t2: hhhconf-t2.o
 clean:
 	rm -f *.o $(PROGS)
 
+test:
+	@splint -weak $(wildcard *.c) 2>/dev/null
+	@shellcheck hhhconf
