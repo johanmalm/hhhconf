@@ -33,7 +33,8 @@ static const char hhhconf_t2_usage[] =
 "Options:\n"
 "  -f <file>     Specify tint2rc filename\n"
 "  -s <section>  Specify section name, e.g. panel, taskbar, task, task_active\n"
-"                This is only required for 'background' key/value pairs\n";
+"                This is only required for 'background' key/value pairs\n"
+"  -h            Show help message\n";
 
 static char *sections[] = {
 	"panel", "taskbar", "taskbar_active", "taskbar_name",
@@ -344,6 +345,9 @@ int main(int argc, char **argv)
 				strlcpy(filename, argv[i + 1], sizeof(filename));
 				i++;
 				continue;
+			case 'h':
+				usage();
+				break;
 			case 's':
 				section = argv[i + 1];
 				i++;
