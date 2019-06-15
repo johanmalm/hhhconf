@@ -18,6 +18,18 @@ read_sleep () {
 	return 0
 }
 
+apply_gtk_font_to_tint2 () {
+	local font=$(hhhconf-gtkfont)
+	hhhconf-t2 -p "task_font" "$font"
+	hhhconf-t2 -p "taskbar_name_font" "$font"
+	hhhconf-t2 -p "time1_font" "$font"
+	hhhconf-t2 -p "time2_font" "$font"
+	hhhconf-t2 -p "tooltip_font" "$font"
+	hhhconf-t2 -p "bat1_font" "$font"
+	hhhconf-t2 -p "bat2_font" "$font"
+	# Need more sophisticated code to add 'execp_font' and 'button_font'
+}
+
 pywal_tint2 () {
 	local wal_colours="${HOME}/.cache/wal/colors.sh"
 	[[ -e $wal_colours ]] || die "cannot find $wal_colours"
@@ -36,6 +48,7 @@ hard_restart () {
 
 print_commands () {
 	printf "%b" "\
+f = apply gtk3 font to tint2\n\
 h = show available commands\n\
 p = apply pywal to tint2\n\
 t = tint2 restart soft\n\
@@ -61,6 +74,7 @@ prompt () {
 	# process one character at a time
 	for ((i=0;i<${#cmd};i++)); do
 		case "${cmd:$i:1}" in
+			f) apply_gtk_font_to_tint2 ;;
 			t) killall -SIGUSR2 tint2 ;;
 			T) hard_restart tint2 ;;
 			p) pywal_tint2 ;;
