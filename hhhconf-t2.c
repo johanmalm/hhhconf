@@ -25,16 +25,19 @@ struct entry {
 static struct entry *entries;
 static int nr_entries, alloc_entries;
 static int background_id;
+static bool preserve_last_field = false;
 
 static const char hhhconf_t2_usage[] =
 "Usage: hhhconf-t2 [options] <key> [<value>]\n"
 "Get value - if only <key> is provided\n"
 "Set key/value pair - if <value> is provided too\n"
 "Options:\n"
-"  -f <file>     Specify tint2rc filename\n"
+"  -f <file>     Specify tint2rc filename (default ~/.config/tint2/tint2rc)\n"
+"  -h            Show help message\n"
+"  -p            Preserve last field of value (useful for setting font name\n"
+"                whilst preserving font size)\n"
 "  -s <section>  Specify section name, e.g. panel, taskbar, task, task_active\n"
-"                This is only required for 'background' key/value pairs\n"
-"  -h            Show help message\n";
+"                This is only required for 'background' key/value pairs\n";
 
 static char *sections[] = {
 	"panel", "taskbar", "taskbar_active", "taskbar_name",
@@ -276,6 +279,14 @@ static bool is_match(const char *section, const char *key, struct entry entry)
 	return false;
 }
 
+static char *last_field(char *value)
+{
+	if (!preserve_last_field)
+		return "";
+	char *p = strrchr(value, ' ');
+	return p ? ++p : "";
+}
+
 static void set_value(const char *section, const char *key, const char *value)
 {
 	int i;
@@ -287,11 +298,11 @@ static void set_value(const char *section, const char *key, const char *value)
 			continue;
 		goto set_line;
 	}
-	fprintf(stderr, "key not found\n");
+	fprintf(stderr, "warn: key '%s' not found; add manually first time\n", key);
 	return;
 set_line:
-	snprintf(entries[i].line, sizeof(entries[i].line), "%s = %s",
-		 key, value);
+	snprintf(entries[i].line, sizeof(entries[i].line), "%s = %s %s",
+		 key, value, last_field(entries[i].value));
 	fprintf(stderr, "info: ");
 	if (section)
 		fprintf(stderr, "%s.", section);
@@ -348,6 +359,9 @@ int main(int argc, char **argv)
 			case 'h':
 				usage();
 				break;
+			case 'p':
+				preserve_last_field = true;
+				continue;
 			case 's':
 				section = argv[i + 1];
 				i++;
