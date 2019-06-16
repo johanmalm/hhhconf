@@ -59,21 +59,12 @@ q = quit\n"
 
 bad_command () {
 	log "($1) is not a recognised command"
-	print_commands
 }
 
-# commands to possibly add
-#
-# bl-user-setup --refresh
-
-prompt () {
-	local cmd=
-	printf "%b" "\033[32mWhat now>\033[m "
-	read -r cmd
-
+process_command_string () {
 	# process one character at a time
-	for ((i=0;i<${#cmd};i++)); do
-		case "${cmd:$i:1}" in
+	for ((i=0;i<${#1};i++)); do
+		case "${1:$i:1}" in
 			f) apply_gtk_font_to_tint2 ;;
 			t) killall -SIGUSR2 tint2 ;;
 			T) hard_restart tint2 ;;
@@ -82,9 +73,16 @@ prompt () {
 			q) return 1 ;;
 			-) read_sleep 1 ;;
 			'') ;;
-			*) bad_command "$cmd" ;;
+			*) bad_command "$1" ;;
 		esac
 	done
+}
+
+prompt () {
+	local cmd=
+	printf "%b" "\033[32mWhat now>\033[m "
+	read -r cmd
+	process_command_string "$cmd"
 }
 
 await_user_command () {
@@ -95,18 +93,24 @@ await_user_command () {
 	done
 }
 
+usage () {
+	printf "%b\n" "usage: hhhconf [-h] [<commands>]"
+	exit 0
+}
+
 args() {
 	case $1 in
-		-h|--help)
-			printf "%b\n" "usage: hhhconf"
-			exit
-			;;
+		-h)	usage ;;
+		*)	process_command_string "$1" ;;
 	esac
 }
 
 main() {
-	args "$@"
-	await_user_command
+	if [[ $# -gt 0 ]]; then
+		args "$@"
+	else
+		await_user_command
+	fi
 }
 
 main "$@"
