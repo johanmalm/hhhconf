@@ -1,0 +1,30 @@
+#!/bin/bash
+
+urls=(
+	https://raw.githubusercontent.com/johanmalm/.dotfiles/master/dotfiles/.config/tint2/tint2rc
+	https://raw.githubusercontent.com/BunsenLabs/bunsen-configs/hydrogen/skel/.config/tint2/tint2rc
+	https://raw.githubusercontent.com/BunsenLabs/bunsen-configs/helium/skel/.config/tint2/tint2rc
+	https://raw.githubusercontent.com/BunsenLabs/bunsen-configs/lithium/skel/.config/tint2/tint2rc
+	https://raw.githubusercontent.com/hhhorb/lithium-theme-proposals/master/dotfiles/tint2rc-hhh-left.tint2rc
+	https://bitbucket.org/archlabslinux/skel/raw/05503e89f2ec7c35d394868ba42a027f4818f059/openbox-home/.config/tint2/tint2rc
+)
+
+
+for i in "${!urls[@]}"; do
+	title="${urls[i]}"
+	title="${title/https:\/\/raw.githubusercontent.com\/}"
+	title="${title/https:\/\/bitbucket.org\/}"
+	title="${title/raw\/????????????????????????????????????????/...}"
+	printf '%b\n' "$i)  $title"
+done
+
+highest_number=${#urls[@]}
+: $((highest_number--))
+printf "%b" "Choose 0-$highest_number: "
+read -r choice
+
+re='^[0-9]+$'
+[[ $choice =~ $re ]] || { echo "fatal: not unsigned integer"; exit 1; }
+[[ $choice -ge ${#urls[@]} ]] && { echo "fatal: number too big"; exit 1; }
+
+curl -fLo ~/.config/tint2/tint2rc --create-dirs "${urls[$choice]}"
