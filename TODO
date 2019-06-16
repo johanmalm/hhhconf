@@ -1,6 +1,4 @@
 - check dependencies exist (e.g. tint2, pywal)
-- backup tint2rc
 - import files from skel
-- pass command line option to parser
 - read obtheme colours
 - set obtheme colours based on pywal
