@@ -32,6 +32,40 @@ backup () {
 	done
 }
 
+say () {
+	printf "${g_print_col}%b\n" "$@"
+}
+
+set_color () {
+	local color=$1 r g b
+	case "${color:=7}" in
+		"#"*)
+			(( r=16#${color:1:2} ))
+			(( g=16#${color:3:2} ))
+			(( b=16#${color:5:6} ))
+			: "\\e[38;2;${r};${g};${b}m"
+			;;
+		[0-9]*)	: "\\e[38;5;${color}m" ;;
+		*)	: "\\e[38;5;7m" ;;
+	esac
+	printf -v g_print_col '%b' "$_"
+}
+
+preview_colors () {
+	local count=0
+	local i
+	for i in {0..15}; do
+		set_color 7
+		printf "${g_print_col}%2d " "$count"
+		set_color $i
+		printf "${g_print_col}%b" "███  "
+		set_color 7
+		[[ $i -eq 7 ]] && printf "\n"
+		(( count++ ))
+	done
+	printf "\n"
+}
+
 apply_gtk_font_to_tint2 () {
 	backup
 	local font=$(hhhconf-gtkfont)
@@ -81,6 +115,7 @@ process_command_string () {
 	# process one character at a time
 	for ((i=0;i<${#1};i++)); do
 		case "${1:$i:1}" in
+			c) preview_colors ;;
 			f) apply_gtk_font_to_tint2 ;;
 			i) backup ; hhhconf-import ;;
 			t) killall -SIGUSR2 tint2 ;;
