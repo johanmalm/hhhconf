@@ -28,11 +28,13 @@ static int background_id;
 static bool preserve_last_field = false;
 
 static const char hhhconf_t2_usage[] =
-"Usage: hhhconf-t2 [options] <key> [<value>]\n"
+"Usage: hhhconf-t2 [options] [<key>] [<value>]\n"
 "Get value - if only <key> is provided\n"
 "Set key/value pair - if <value> is provided too\n"
 "Options:\n"
 "  -f <file>     Specify tint2rc filename (default ~/.config/tint2/tint2rc)\n"
+"  -F            Add any missing *_font keys except for execp_font and\n"
+"                button_font\n"
 "  -h            Show help message\n"
 "  -p            Preserve last field of value (useful for setting font name\n"
 "                whilst preserving font size)\n"
@@ -50,6 +52,15 @@ static char *background_keys[] = {
 	"rounded", "border_width", "border_sides", "background_color",
 	"border_color", "background_color_hover", "border_color_hover",
 	"background_color_pressed", "border_color_pressed", NULL
+};
+
+/*
+ * We handle "execp_font" and "button_font" differently as they are special in
+ * that they can appear multiple times.
+ */
+static char *font_keys[] = {
+	"task_font", "taskbar_name_font", "time1_font", "time2_font",
+	"tooltip_font", "bat1_font", "bat2_font", NULL
 };
 
 static void usage(void)
@@ -155,7 +166,7 @@ static struct entry *add_entry(void)
 	return entries + nr_entries - 1;
 }
 
-static void process_line(char *line)
+static void add_line(char *line)
 {
 	struct entry *entry;
 	char *key = NULL, *value = NULL;
@@ -196,7 +207,7 @@ static void read_file(const char *filename)
 		if (!p)
 			continue;
 		*p = '\0';
-		process_line(line);
+		add_line(line);
 	}
 	fclose(fp);
 }
@@ -325,6 +336,24 @@ static void get_value(const char *section, const char *key)
 	}
 }
 
+static void add_missing_font_keys(void)
+{
+	int i, j;
+	char buf[1000];
+
+	for (j = 0; font_keys[j]; j++) {
+		for (i = 0; i < nr_entries; i++) {
+			if (is_match(NULL, font_keys[j], entries[i]))
+				goto out;
+		}
+		printf("missing font key: %s\n", font_keys[j]);
+		snprintf(buf, sizeof(buf), "%s = Sans 10", font_keys[j]);
+		add_line(buf);
+out:
+		;
+	}
+}
+
 static void validate_section(const char *section)
 {
 	int i;
@@ -341,6 +370,7 @@ int main(int argc, char **argv)
 {
 	int i;
 	char *section = NULL, *key = NULL, *value = NULL;
+	bool add_missing_fonts = false;
 	char filename[1000];
 
 	if (argc < 2)
@@ -354,6 +384,10 @@ int main(int argc, char **argv)
 			switch (arg[1]) {
 			case 'f':
 				strlcpy(filename, argv[i + 1], sizeof(filename));
+				i++;
+				continue;
+			case 'F':
+				add_missing_fonts = true;
 				i++;
 				continue;
 			case 'h':
@@ -379,11 +413,16 @@ int main(int argc, char **argv)
 		}
 		die("too many arguments '%s'", arg);
 	}
-	if (!key)
+	if (!key && !add_missing_fonts)
 		usage();
 	if (section)
 		validate_section(section);
 	read_file(filename);
+	if (add_missing_fonts) {
+		add_missing_font_keys();
+		write_file(filename);
+		return EXIT_SUCCESS;
+	}
 	if (!value) {
 		get_value(section, key);
 	} else {
