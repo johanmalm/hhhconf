@@ -76,6 +76,8 @@ apply_gtk_font_to_tint2 () {
 	hhhconf-t2 -p "tooltip_font" "$font"
 	hhhconf-t2 -p "bat1_font" "$font"
 	hhhconf-t2 -p "bat2_font" "$font"
+	hhhconf-t2 -p "execp_font" "$font"
+	hhhconf-t2 -p "button_font" "$font"
 	# Need more sophisticated code to add 'execp_font' and 'button_font'
 }
 
@@ -97,6 +99,7 @@ hard_restart () {
 
 print_commands () {
 	printf "%b" "\
+c = view terminal colors\n\
 f = apply gtk3 font to tint2\n\
 h = show available commands\n\
 i = import tint2rc\n\
