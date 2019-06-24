@@ -69,6 +69,7 @@ preview_colors () {
 apply_gtk_font_to_tint2 () {
 	backup
 	local font=$(hhhconf-gtkfont)
+	hhhconf-t2 -F
 	hhhconf-t2 -p "task_font" "$font"
 	hhhconf-t2 -p "taskbar_name_font" "$font"
 	hhhconf-t2 -p "time1_font" "$font"
@@ -78,7 +79,6 @@ apply_gtk_font_to_tint2 () {
 	hhhconf-t2 -p "bat2_font" "$font"
 	hhhconf-t2 -p "execp_font" "$font"
 	hhhconf-t2 -p "button_font" "$font"
-	# Need more sophisticated code to add 'execp_font' and 'button_font'
 }
 
 pywal_tint2 () {
