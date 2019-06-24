@@ -318,8 +318,15 @@ static void set_value(const char *section, const char *key, const char *value)
 		strlcpy(entries[i].key, key, sizeof(entries[i].key));
 		strlcpy(entries[i].value, value, sizeof(entries[i].value));
 	}
-	if (!found)
-		fprintf(stderr, "warn: key '%s' not found\n", key);
+	if (found)
+		return;
+	/*
+	 * Let's not warn about {execp,button}_font, as we don't add them with
+	 * option -F anyway.
+	 */
+	if (!strcmp(key, "execp_font") || !strcmp(key, "button_font"))
+		return;
+	fprintf(stderr, "warn: key '%s' not found\n", key);
 }
 
 static void get_value(const char *section, const char *key)
@@ -346,7 +353,8 @@ static void add_missing_font_keys(void)
 			if (is_match(NULL, font_keys[j], entries[i]))
 				goto out;
 		}
-		printf("missing font key: %s\n", font_keys[j]);
+		printf(stderr, "info: add key: %s\n", font_keys[j]);
+		/* default font taken from tint2's panel.h#89 */
 		snprintf(buf, sizeof(buf), "%s = Sans 10", font_keys[j]);
 		add_line(buf);
 out:
