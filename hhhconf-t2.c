@@ -301,25 +301,25 @@ static char *last_field(char *value)
 static void set_value(const char *section, const char *key, const char *value)
 {
 	int i;
+	static int found;
 
 	if (!key || !value)
 		die("NULL passed to function '%s'", __func__);
 	for (i = 0; i < nr_entries; i++) {
 		if (!is_match(section, key, entries[i]))
 			continue;
-		goto set_line;
+		found = 1;
+		snprintf(entries[i].line, sizeof(entries[i].line), "%s = %s %s",
+			 key, value, last_field(entries[i].value));
+		fprintf(stderr, "info: ");
+		if (section)
+			fprintf(stderr, "%s.", section);
+		fprintf(stderr, "%s\n", entries[i].line);
+		strlcpy(entries[i].key, key, sizeof(entries[i].key));
+		strlcpy(entries[i].value, value, sizeof(entries[i].value));
 	}
-	fprintf(stderr, "warn: key '%s' not found; add manually first time\n", key);
-	return;
-set_line:
-	snprintf(entries[i].line, sizeof(entries[i].line), "%s = %s %s",
-		 key, value, last_field(entries[i].value));
-	fprintf(stderr, "info: ");
-	if (section)
-		fprintf(stderr, "%s.", section);
-	fprintf(stderr, "%s\n", entries[i].line);
-	strlcpy(entries[i].key, key, sizeof(entries[i].key));
-	strlcpy(entries[i].value, value, sizeof(entries[i].value));
+	if (!found)
+		fprintf(stderr, "warn: key '%s' not found\n", key);
 }
 
 static void get_value(const char *section, const char *key)
