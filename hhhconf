@@ -70,7 +70,7 @@ preview_colors () {
 	printf "\n"
 }
 
-apply_gtk_font_to_tint2 () {
+tint2_use_gtk_font () {
 	backup
 	local font=$(hhhconf-gtkfont)
 	hhhconf-t2 -F
@@ -85,14 +85,9 @@ apply_gtk_font_to_tint2 () {
 	hhhconf-t2 -p "button_font" "$font"
 }
 
-pywal_tint2 () {
+tint2_set_atask_bg () {
 	backup
-	local wal_colours="${HOME}/.cache/wal/colors.sh"
-	[[ -e $wal_colours ]] || die "cannot find $wal_colours"
-	. "$wal_colours"
-#	hhhconf-t2 -s panel background_color "$background 100"
 	hhhconf-t2 -s task_active background_color "$color1 100"
-	hhhconf-t2 task_background_id 0
 }
 
 hard_restart () {
@@ -103,13 +98,16 @@ hard_restart () {
 
 print_commands () {
 	printf "%b" "\
-c = view terminal colors\n\
-f = apply gtk3 font to tint2\n\
+[tint2]\n\
+f = use gtk3 font\n\
+i = import config files\n\
+p = set active task bg col\n\
+t = restart\n\
+\n\
+[general]\n\
+s = sleep one second\n\
 h = show available commands\n\
-i = import tint2rc\n\
-p = apply pywal to tint2\n\
-t = restart tint2\n\
-- = sleep one second\n\
+c = view terminal colors\n\
 q = quit\n"
 }
 
@@ -122,13 +120,13 @@ process_command_string () {
 	for ((i=0;i<${#1};i++)); do
 		case "${1:$i:1}" in
 			c) preview_colors ;;
-			f) apply_gtk_font_to_tint2 ;;
+			f) tint2_use_gtk_font ;;
 			i) backup ; hhhconf-import ;;
 			t) hard_restart tint2 ;;
-			p) pywal_tint2 ;;
+			p) tint2_set_atask_bg ;;
 			h|\?) print_commands ;;
 			q) return 1 ;;
-			-) read_sleep 1 ;;
+			s) read_sleep 1 ;;
 			'') ;;
 			*) bad_command "$1" ;;
 		esac
@@ -151,7 +149,9 @@ await_user_command () {
 }
 
 usage () {
-	printf "%b\n" "usage: hhhconf [-h] [<commands>]"
+	printf "%b\n" "Usage: hhhconf [-h] [<commands>]"
+	printf "%b\n" "Commands:"
+	print_commands
 	exit 0
 }
 
