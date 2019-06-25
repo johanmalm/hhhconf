@@ -104,8 +104,7 @@ f = apply gtk3 font to tint2\n\
 h = show available commands\n\
 i = import tint2rc\n\
 p = apply pywal to tint2\n\
-t = tint2 restart soft\n\
-T = tint2 restart hard\n\
+t = restart tint2\n\
 - = sleep one second\n\
 q = quit\n"
 }
@@ -121,8 +120,7 @@ process_command_string () {
 			c) preview_colors ;;
 			f) apply_gtk_font_to_tint2 ;;
 			i) backup ; hhhconf-import ;;
-			t) killall -SIGUSR2 tint2 ;;
-			T) hard_restart tint2 ;;
+			t) hard_restart tint2 ;;
 			p) pywal_tint2 ;;
 			h|\?) print_commands ;;
 			q) return 1 ;;
