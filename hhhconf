@@ -13,6 +13,10 @@ log () {
 	printf '\033[32m=>\033[m %s\n' "$@"
 }
 
+xtype () {
+	type "$1" >/dev/null 2>&1 || die "depend on $1"
+}
+
 read_sleep () {
 	read -rst "${1:-1}" -N 999
 	return 0
@@ -159,6 +163,7 @@ args() {
 }
 
 main() {
+	xtype tint2
 	if [[ $# -gt 0 ]]; then
 		args "$@"
 	else
