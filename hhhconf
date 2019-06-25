@@ -13,6 +13,10 @@ log () {
 	printf '\033[32m=>\033[m %s\n' "$@"
 }
 
+say () {
+	printf "${g_print_col}%b\n" "$@"
+}
+
 xtype () {
 	type "$1" >/dev/null 2>&1 || die "depend on $1"
 }
@@ -36,10 +40,6 @@ backup () {
 	done
 }
 
-say () {
-	printf "${g_print_col}%b\n" "$@"
-}
-
 set_color () {
 	local color=$1 r g b
 	case "${color:=7}" in
@@ -55,9 +55,10 @@ set_color () {
 	printf -v g_print_col '%b' "$_"
 }
 
-preview_colors () {
+preview_terminal_colors () {
 	local count=0
 	local i
+	printf "%b\n" "[terminal colors]"
 	for i in {0..15}; do
 		set_color 7
 		printf "${g_print_col}%2d " "$count"
@@ -68,6 +69,28 @@ preview_colors () {
 		(( count++ ))
 	done
 	printf "\n"
+}
+
+preview_pywal_colors () {
+	local count=0
+	local i
+	local wal_colours="${HOME}/.cache/wal/colors.sh"
+	[[ -e $wal_colours ]] || { log "cannot find pywal colors" ; return; }
+	. "$wal_colours"
+	printf "%b\n" "[pywal colors]"
+	for hex in $color0 $color1 $color3 $color4 $color5 $color6 $color7 $color8 $color9 $color10 $color11 $color12 $color13 $color14 $color15; do
+		set_color 7
+		printf "${g_print_col}%s) " "$hex"
+		set_color $hex
+		printf "${g_print_col}%b\n" "███  "
+	done
+	set_color 7
+	printf "\n"
+}
+
+preview_colors () {
+	preview_terminal_colors
+	preview_pywal_colors
 }
 
 tint2_use_gtk_font () {
@@ -107,7 +130,7 @@ t = restart\n\
 [general]\n\
 s = sleep one second\n\
 h = show available commands\n\
-c = view terminal colors\n\
+c = preview colors\n\
 q = quit\n"
 }
 
