@@ -39,7 +39,19 @@ static const char hhhconf_t2_usage[] =
 "  -p            Preserve last field of value (useful for setting font name\n"
 "                whilst preserving font size)\n"
 "  -s <section>  Specify section name, e.g. panel, taskbar, task, task_active\n"
-"                This is only required for 'background' key/value pairs\n";
+"                This is only required for 'background' key/value pairs\n"
+"Examples:\n"
+"  hhhconf-t2 task_font\n"
+"                Get value of task_font (e.g. 'Sans 10')\n"
+"  hhhconf-t2 panel_items TCS\n"
+"                Set panel_items to TCS\n"
+"  hhhconf-t2 -p task_font \"Futura Bk BT\"\n"
+"                Set task font name but keep size (e.g. 'Futura Bk BT 10')\n"
+"  hhhconf-t2 -s task_active background_color \"#ff0000 100\"\n"
+"                Set 'background_color' associated with 'task_active'\n"
+"  hhhconf-t2 -F\n"
+"                Add missing *_font variables excl 'execp*' and 'button*'\n";
+
 
 static char *sections[] = {
 	"panel", "taskbar", "taskbar_active", "taskbar_name",
@@ -353,7 +365,7 @@ static void add_missing_font_keys(void)
 			if (is_match(NULL, font_keys[j], entries[i]))
 				goto out;
 		}
-		printf(stderr, "info: add key: %s\n", font_keys[j]);
+		fprintf(stderr, "info: add key: %s\n", font_keys[j]);
 		/* default font taken from tint2's panel.h#89 */
 		snprintf(buf, sizeof(buf), "%s = Sans 10", font_keys[j]);
 		add_line(buf);
@@ -378,8 +390,9 @@ int main(int argc, char **argv)
 {
 	int i;
 	char *section = NULL, *key = NULL, *value = NULL;
-	bool add_missing_fonts = false;
 	char filename[1000];
+	enum action { NONE, GET, SET, ADD_MISSING_FONTS };
+	enum action action = NONE;
 
 	if (argc < 2)
 		usage();
@@ -395,7 +408,7 @@ int main(int argc, char **argv)
 				i++;
 				continue;
 			case 'F':
-				add_missing_fonts = true;
+				action = ADD_MISSING_FONTS;
 				i++;
 				continue;
 			case 'h':
@@ -406,6 +419,7 @@ int main(int argc, char **argv)
 				continue;
 			case 's':
 				section = argv[i + 1];
+				validate_section(section);
 				i++;
 				continue;
 			}
@@ -421,21 +435,29 @@ int main(int argc, char **argv)
 		}
 		die("too many arguments '%s'", arg);
 	}
-	if (!key && !add_missing_fonts)
-		usage();
-	if (section)
-		validate_section(section);
+
 	read_file(filename);
-	if (add_missing_fonts) {
+
+	if (key && value)
+		action = SET;
+	else if (key)
+		action = GET;
+
+	switch (action) {
+	case NONE:
+		usage();
+		break;
+	case ADD_MISSING_FONTS:
 		add_missing_font_keys();
 		write_file(filename);
 		return EXIT_SUCCESS;
-	}
-	if (!value) {
+	case GET:
 		get_value(section, key);
-	} else {
+		break;
+	case SET:
 		set_value(section, key, value);
 		write_file(filename);
+		break;
 	}
 	return EXIT_SUCCESS;
 }
