@@ -78,10 +78,11 @@ preview_pywal_colors () {
 	[[ -e $wal_colours ]] || { log "cannot find pywal colors" ; return; }
 	. "$wal_colours"
 	printf "%b\n" "[pywal colors]"
-	for hex in $color0 $color1 $color3 $color4 $color5 $color6 $color7 $color8 $color9 $color10 $color11 $color12 $color13 $color14 $color15; do
+	g_arr=($color0 $color1 $color3 $color4 $color5 $color6 $color7 $color8 $color9 $color10 $color11 $color12 $color13 $color14 $color15)
+	for i in "${!g_arr[@]}"; do
 		set_color 7
-		printf "${g_print_col}%s) " "$hex"
-		set_color $hex
+		printf "${g_print_col}%2d)  %s  " "$i" "${g_arr[i]}"
+		set_color ${g_arr[i]}
 		printf "${g_print_col}%b\n" "███  "
 	done
 	set_color 7
@@ -91,6 +92,25 @@ preview_pywal_colors () {
 preview_colors () {
 	preview_terminal_colors
 	preview_pywal_colors
+}
+
+array_prompt () {
+	highest_number=${#g_arr[@]}
+	: $((highest_number--))
+	printf "%b" "Choose 0-$highest_number: "
+}
+
+check () {
+	re_uint='^[0-9]+$'
+	[[ $1 =~ $re_uint ]] || die "not unsigned integer"
+	[[ $1 -ge ${#g_arr[@]} ]] && die "number too big"
+}
+
+tint2_set_atask_bg () {
+	backup
+	preview_pywal_colors
+	array_prompt ; read -r choice ; check "$choice"
+	hhhconf-t2 -s task_active background_color "${g_arr[$choice]} 100"
 }
 
 tint2_use_gtk_font () {
@@ -106,11 +126,6 @@ tint2_use_gtk_font () {
 	hhhconf-t2 -p "bat2_font" "$font"
 	hhhconf-t2 -p "execp_font" "$font"
 	hhhconf-t2 -p "button_font" "$font"
-}
-
-tint2_set_atask_bg () {
-	backup
-	hhhconf-t2 -s task_active background_color "$color1 100"
 }
 
 hard_restart () {
