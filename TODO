@@ -1,4 +1,3 @@
-- check dependencies exist (e.g. tint2, pywal)
-- import files from skel
-- read obtheme colours
-- set obtheme colours based on pywal
+- t2: add verbose flag
+- read obtheme colours and display based on hex values
+- set ob colours
