@@ -1,0 +1,13 @@
+Source: hhhconf
+Maintainer: Johan Malm <jgm323@gmail.com>
+Section: x11
+Priority: optional
+Standards-Version: 3.9.7
+Build-Depends: debhelper (>= 10),
+               gcc,
+               make
+
+Package: hhhconf
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}, bash
+Description: Config tool to make bunsenlabs ricing easier
