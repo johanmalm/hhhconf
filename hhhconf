@@ -94,22 +94,23 @@ preview_colors () {
 	preview_pywal_colors
 }
 
-array_prompt () {
+# arr_{prompt,check} are helpers for g_arr
+arr_prompt () {
 	highest_number=${#g_arr[@]}
 	: $((highest_number--))
 	printf "%b" "Choose 0-$highest_number: "
 }
 
-check () {
+arr_check () {
 	re_uint='^[0-9]+$'
 	[[ $1 =~ $re_uint ]] || die "not unsigned integer"
 	[[ $1 -ge ${#g_arr[@]} ]] && die "number too big"
 }
 
-tint2_set_atask_bg () {
+tint2_set_active_task_bg () {
 	backup
 	preview_pywal_colors
-	array_prompt ; read -r choice ; check "$choice"
+	arr_prompt ; read -r choice ; arr_check "$choice"
 	hhhconf-t2 -s task_active background_color "${g_arr[$choice]} 100"
 }
 
@@ -161,7 +162,7 @@ process_command_string () {
 			f) tint2_use_gtk_font ;;
 			i) backup ; hhhconf-import ;;
 			t) hard_restart tint2 ;;
-			p) tint2_set_atask_bg ;;
+			p) tint2_set_active_task_bg ;;
 			h|\?) print_commands ;;
 			q) return 1 ;;
 			s) read_sleep 1 ;;
