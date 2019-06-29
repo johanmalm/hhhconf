@@ -58,9 +58,9 @@ void split(char *line, char **left, char **right, char delim)
 	p = line;
 	while ((p[0] == ' ') || (p[0] == '\t'))
 		p++;
-	if (p[0] == '\n' || p[0] == delim)
+	if (p[0] == '\n' || p[0] == '#')
 		return;
-	p = strchr(line, '=');
+	p = strchr(line, delim);
 	if (!p)
 		return;
 	p[0] = '\0';

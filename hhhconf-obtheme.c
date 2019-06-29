@@ -3,13 +3,47 @@
 enum state { INSIDE_TAG, OUTSIDE_TAG };
 static enum state state = OUTSIDE_TAG;
 static int found_theme_name;
+static char theme_name[256] = { 0 };
+
+void parse_themerc_line(char *line)
+{
+	char *key = NULL, *value = NULL;
+
+	split(line, &key, &value, ':');
+	if (!key || !value)
+		return;
+	if (value[0] == '#')
+		printf("%s\n", value);
+}
+
+void process_themerc_file(const char *filename)
+{
+	FILE *fp;
+	char line[4096];
+	char *p;
+
+	if (!filename)
+		die("'%s' no filename", __func__);
+	fp = fopen(filename, "r");
+	if (!fp)
+		die("could not open themerc file");
+	while (fgets(line, (int)sizeof(line), fp)) {
+		if (line[0] == '\0')
+			continue;
+		p = strrchr(line, '\n');
+		if (!p)
+			continue;
+		*p = '\0';
+		parse_themerc_line(line);
+	}
+	fclose(fp);
+}
 
 static void handle_text(char *text)
 {
 	if (!found_theme_name)
 		return;
-	printf("%s\n", text);
-	exit(0);
+	snprintf(theme_name, sizeof(theme_name), "%s", text);
 }
 
 static void handle_tag(char *tag)
@@ -30,7 +64,7 @@ static void handle_tag(char *tag)
 		found_theme_name = 1;
 }
 
-static void parse_line(char *line)
+static void parse_xml_line(char *line)
 {
 	char *tag = NULL, *text = NULL;
 	size_t i, len = strlen(line);
@@ -61,17 +95,17 @@ static void parse_line(char *line)
 	}
 }
 
-int main(int argc, char **argv)
+void process_xml_file(const char *filename)
 {
 	FILE *fp;
 	char line[4096];
 	char *p;
 
-	if (argc < 2)
-		die("Usage: hhhconf-obtheme <filename>");
-	fp = fopen(argv[1], "r");
+	if (!filename)
+		die("'%s' no filename", __func__);
+	fp = fopen(filename, "r");
 	if (!fp)
-		die("could not open file");
+		die("could not open rc.xml");
 	while (fgets(line, (int)sizeof(line), fp)) {
 		if (line[0] == '\0')
 			continue;
@@ -79,8 +113,25 @@ int main(int argc, char **argv)
 		if (!p)
 			continue;
 		*p = '\0';
-		parse_line(line);
+		parse_xml_line(line);
+		if (theme_name[0] != '\0')
+			break;
 	}
 	fclose(fp);
+}
+
+int main(int argc, char **argv)
+{
+	char themerc[1000];
+
+	if (argc < 2)
+		die("Usage: hhhconf-obtheme <filename>");
+	process_xml_file(argv[1]);
+	if (theme_name[0] == '\0')
+		die("could not find theme name");
+	fprintf(stderr, "info: rc.xml obtheme '%s'\n", theme_name);
+	snprintf(themerc, sizeof(themerc), "%s/.themes/%s/openbox-3/themerc",
+		 getenv("HOME"), theme_name);
+	process_themerc_file(themerc);
 	return EXIT_SUCCESS;
 }
