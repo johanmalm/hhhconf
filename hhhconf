@@ -174,19 +174,20 @@ hard_restart () {
 
 print_commands () {
 	set_color 15
+	say "[palette]"
+	set_color 7
+	say "  0 = default               1 = openbox theme         2 = pywal"
+	say "  3 = moonlight5"
+	set_color 15
 	say "[tint2]"
 	set_color 7
-	say "f = use gtk3 font"
-	say "i = import config files"
-	say "p = set active task bg col"
-	say "t = restart"
+	say "  f = use gtk3 font         i = import configs        t = restart"
+	say "  n = active task border    p = active task bg col    o = panel bg col"
 	set_color 15
 	say "[general]"
 	set_color 7
-	say "s = sleep one second"
-	say "h = show available commands"
-	say "c = preview colors"
-	say "q = quit"
+	say "  s = sleep one second      h = help"
+	say "  c = preview colors        q = quit"
 }
 
 bad_command () {
