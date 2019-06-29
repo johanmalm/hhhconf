@@ -5,15 +5,51 @@ static enum state state = OUTSIDE_TAG;
 static int found_theme_name;
 static char theme_name[256] = { 0 };
 
+struct entry {
+	char color[16];
+};
+
+static struct entry *entries;
+static int nr_entries, alloc_entries;
+
+static bool is_duplicate_color(char *color)
+{
+	int i;
+
+	for (i = 0; i < nr_entries; i++)
+		if (!strcmp(entries[i].color, color))
+			return true;
+	return false;
+}
+
+static struct entry *add_entry(void)
+{
+	struct entry *entry;
+
+	if (nr_entries == alloc_entries) {
+		alloc_entries = (alloc_entries + 16) * 2;
+		entries = xrealloc(entries, alloc_entries * sizeof(*entry));
+	}
+	entry = entries + nr_entries;
+	(void)memset(entry, 0, sizeof(*entry));
+	nr_entries++;
+	return entries + nr_entries - 1;
+}
+
 void parse_themerc_line(char *line)
 {
 	char *key = NULL, *value = NULL;
+	struct entry *entry;
 
 	split(line, &key, &value, ':');
 	if (!key || !value)
 		return;
-	if (value[0] == '#')
-		printf("%s\n", value);
+	if (value[0] == '#') {
+		if (is_duplicate_color(value))
+			return;
+		entry = add_entry();
+		strlcpy(entry->color, value, sizeof(entry->color));
+	}
 }
 
 void process_themerc_file(const char *filename)
@@ -123,6 +159,7 @@ void process_xml_file(const char *filename)
 int main(int argc, char **argv)
 {
 	char themerc[1000];
+	int i;
 
 	if (argc < 2)
 		die("Usage: hhhconf-obtheme <filename>");
@@ -133,5 +170,7 @@ int main(int argc, char **argv)
 	snprintf(themerc, sizeof(themerc), "%s/.themes/%s/openbox-3/themerc",
 		 getenv("HOME"), theme_name);
 	process_themerc_file(themerc);
+	for (i = 0; i < nr_entries; i++)
+		printf("%s\n", entries[i].color);
 	return EXIT_SUCCESS;
 }
