@@ -9,7 +9,7 @@ all: $(PROGS)
 install: $(PROGS)
 	install -m755 $(PROGS) $(SCRIPTS) $(DESTDIR)$(bindir)
 
-hhhconf-t2: hhhconf-t2.o
+hhhconf-t2: hhhconf-t2.o util.o
 	$(CC) $(CFLAGS) -o $@ $^
 
 clean:
