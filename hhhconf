@@ -71,14 +71,25 @@ preview_terminal_colors () {
 	printf "\n"
 }
 
-preview_pywal_colors () {
-	local count=0
-	local i
+set_pal_0_default () {
+	g_arr=( "#000000" "#000011" "#000022" )
+}
+
+set_pal_2_pywal () {
 	local wal_colours="${HOME}/.cache/wal/colors.sh"
 	[[ -e $wal_colours ]] || { log "cannot find pywal colors" ; return; }
 	. "$wal_colours"
 	printf "%b\n" "[pywal colors]"
 	g_arr=( "$color0" "$color1" "$color3" "$color4" "$color5" "$color6" "$color7" "$color8" "$color9" "$color10" "$color11" "$color12" "$color13" "$color14" "$color15" )
+}
+
+set_pal_3_moonlight () {
+	g_arr=( "#1C2E35" "#21333B" "#233946" "#243E4E" "#274758" "#BC4B4F" )
+}
+
+view_palette () {
+	# based on what's in g_arr
+	local i
 	for i in "${!g_arr[@]}"; do
 		set_color 7
 		printf "${g_print_col}%2d)  %s  " "$i" "${g_arr[i]}"
@@ -91,7 +102,7 @@ preview_pywal_colors () {
 
 preview_colors () {
 	preview_terminal_colors
-	preview_pywal_colors
+	set_pal_2_pywal ; view_palette
 }
 
 # arr_{prompt,check} are helpers for g_arr
@@ -107,9 +118,26 @@ arr_check () {
 	[[ $1 -ge ${#g_arr[@]} ]] && die "number too big"
 }
 
+tint2_set_active_task_border () {
+	backup
+	set_pal_3_moonlight
+	view_palette
+	arr_prompt ; read -r choice ; arr_check "$choice"
+	hhhconf-t2 -s task_active border_color "${g_arr[$choice]} 100"
+}
+
+tint2_set_panel_bg () {
+	backup
+	set_pal_3_moonlight
+	view_palette
+	arr_prompt ; read -r choice ; arr_check "$choice"
+	hhhconf-t2 -s panel background_color "${g_arr[$choice]} 100"
+}
 tint2_set_active_task_bg () {
 	backup
-	preview_pywal_colors
+#	set_pal_2_pywal
+	set_pal_3_moonlight
+	view_palette
 	arr_prompt ; read -r choice ; arr_check "$choice"
 	hhhconf-t2 -s task_active background_color "${g_arr[$choice]} 100"
 }
@@ -203,6 +231,8 @@ process_command_string () {
 			f) tint2_use_gtk_font ;;
 			i) tint2_import ;;
 			t) hard_restart tint2 ;;
+			n) tint2_set_active_task_border ;;
+			o) tint2_set_panel_bg ;;
 			p) tint2_set_active_task_bg ;;
 			h|\?) print_commands ;;
 			q) return 1 ;;
