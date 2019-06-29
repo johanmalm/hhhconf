@@ -114,10 +114,24 @@ tint2_set_active_task_bg () {
 	hhhconf-t2 -s task_active background_color "${g_arr[$choice]} 100"
 }
 
+gtkfont () {
+	gtktheme="$HOME/.config/gtk-3.0/settings.ini"
+	[[ -e $gtktheme ]] || die "gtk-3.0/settings.ini cannot be found"
+	while read -r line; do
+		if [[ $line = *gtk-font-name* ]]; then
+			font="${line##*=}"
+		break
+		fi
+	done < "$gtktheme"
+	[[ -z $font ]] && die "settings.ini contains no font name"
+	# print without font size
+	printf '%b\n' "${font%\ *}"
+}
+
 tint2_use_gtk_font () {
-	local font
 	backup
-	font=$(hhhconf-gtkfont)
+	local font
+	font=$(gtkfont)
 	hhhconf-t2 -F
 	hhhconf-t2 -p "task_font" "$font"
 	hhhconf-t2 -p "taskbar_name_font" "$font"
