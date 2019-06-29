@@ -72,7 +72,7 @@ preview_terminal_colors () {
 }
 
 set_pal_0_default () {
-	g_arr=( "#000000" "#000011" "#000022" )
+	g_arr=( "#111111" "#111122" "#111133" "#111144" "#111155" "#112211" "#112222" "#112233" "#112244" "#112255" "#113311" )
 }
 
 set_pal_2_pywal () {
@@ -85,6 +85,14 @@ set_pal_2_pywal () {
 
 set_pal_3_moonlight () {
 	g_arr=( "#1C2E35" "#21333B" "#233946" "#243E4E" "#274758" "#BC4B4F" )
+}
+
+set_palette () {
+	case $g_palette in
+		0) set_pal_0_default ;;
+		2) set_pal_2_pywal ;;
+		3) set_pal_3_moonlight ;;
+	esac
 }
 
 view_palette () {
@@ -101,8 +109,8 @@ view_palette () {
 }
 
 preview_colors () {
-	preview_terminal_colors
-	set_pal_2_pywal ; view_palette
+	set_palette
+	view_palette
 }
 
 # arr_{prompt,check} are helpers for g_arr
@@ -120,24 +128,21 @@ arr_check () {
 
 tint2_set_active_task_border () {
 	backup
-	set_pal_3_moonlight
-	view_palette
+	preview_colors
 	arr_prompt ; read -r choice ; arr_check "$choice"
 	hhhconf-t2 -s task_active border_color "${g_arr[$choice]} 100"
 }
 
 tint2_set_panel_bg () {
 	backup
-	set_pal_3_moonlight
-	view_palette
+	preview_colors
 	arr_prompt ; read -r choice ; arr_check "$choice"
 	hhhconf-t2 -s panel background_color "${g_arr[$choice]} 100"
 }
+
 tint2_set_active_task_bg () {
 	backup
-#	set_pal_2_pywal
-	set_pal_3_moonlight
-	view_palette
+	preview_colors
 	arr_prompt ; read -r choice ; arr_check "$choice"
 	hhhconf-t2 -s task_active background_color "${g_arr[$choice]} 100"
 }
@@ -204,7 +209,8 @@ print_commands () {
 	set_color 15
 	say "[palette]"
 	set_color 7
-	say "  0 = default               1 = openbox theme         2 = pywal"
+#	say "  0 = default               1 = openbox theme         2 = pywal"
+	say "  0 = default                                         2 = pywal"
 	say "  3 = moonlight5"
 	set_color 15
 	say "[tint2]"
@@ -214,8 +220,7 @@ print_commands () {
 	set_color 15
 	say "[general]"
 	set_color 7
-	say "  s = sleep one second      h = help"
-	say "  c = preview colors        q = quit"
+	say "  s = sleep one second      h = help                  q = quit"
 }
 
 bad_command () {
@@ -227,7 +232,9 @@ process_command_string () {
 	local c
 	for ((c=0;c<${#1};c++)); do
 		case "${1:$c:1}" in
-			c) preview_colors ;;
+			0) g_palette="0" ; preview_colors ;;
+			2) g_palette="2" ; preview_colors ;;
+			3) g_palette="3" ; preview_colors ;;
 			f) tint2_use_gtk_font ;;
 			i) tint2_import ;;
 			t) hard_restart tint2 ;;
@@ -274,6 +281,7 @@ args() {
 
 main() {
 	xtype tint2
+	g_palette="0"
 	if [[ $# -gt 0 ]]; then
 		args "$@"
 	else
