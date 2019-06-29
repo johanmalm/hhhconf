@@ -136,18 +136,20 @@ hard_restart () {
 }
 
 print_commands () {
-	printf "%b" "\
-[tint2]\n\
-f = use gtk3 font\n\
-i = import config files\n\
-p = set active task bg col\n\
-t = restart\n\
-\n\
-[general]\n\
-s = sleep one second\n\
-h = show available commands\n\
-c = preview colors\n\
-q = quit\n"
+	set_color 15
+	say "[tint2]"
+	set_color 7
+	say "f = use gtk3 font"
+	say "i = import config files"
+	say "p = set active task bg col"
+	say "t = restart"
+	set_color 15
+	say "[general]"
+	set_color 7
+	say "s = sleep one second"
+	say "h = show available commands"
+	say "c = preview colors"
+	say "q = quit"
 }
 
 bad_command () {
