@@ -2,7 +2,7 @@ CFLAGS  += -g -Wall -std=c11 -pedantic
 prefix  ?= $(HOME)
 bindir   = $(prefix)/bin
 PROGS    = hhhconf-t2
-SCRIPTS  = hhhconf hhhconf-gtkfont hhhconf-import
+SCRIPTS  = hhhconf hhhconf-gtkfont
 
 all: $(PROGS)
 
