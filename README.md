@@ -1,10 +1,6 @@
 # hhhconf
 
-Config tool for @hhhorb
-
-Make ricing easier with
-
- - tint2
+Config tool for tint2. Written for @hhhorb
 
 ## Build and install
 
@@ -14,15 +10,42 @@ make install
 
 ## Usage
 
-```
-hhhconf     Interactive tool
-hhhconf-t2  CLI for tint2 configuration
-```
-
-Use any of the above with `-h` for usage instructions
-
-## Example
+hhhconf is an interactive too, so just follow instructions.
 
 ```
-hhhconf-t2 -s task background_color "c0c0c0 100"
+hhhconf
 ```
+
+Alternatively, use `hhhconf-t2` directly. Run with `-h` for full help message.
+Here follow some examples:
+
+Get value of `task_font` (e.g. 'Sans 10')
+
+```sh
+hhhconf-t2 task_font
+```
+
+Set `panel_items` to TCS
+
+```sh
+hhhconf-t2 panel_items TCS
+```
+
+Set task font name but keep size (e.g. 'Futura Bk BT 10')
+
+```sh
+hhhconf-t2 -p task_font "Futura Bk BT"
+```
+
+Set `background_color` associated with `task_active`
+
+```sh
+hhhconf-t2 -s task_active background_color "#ff0000 100"
+```
+
+Add missing *_font variables excl 'execp*' and 'button*'
+
+```sh
+hhhconf-t2 -F
+```
+

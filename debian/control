@@ -10,4 +10,4 @@ Build-Depends: debhelper (>= 10),
 Package: hhhconf
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}, bash
-Description: Config tool to make bunsenlabs ricing easier
+Description: Config tool for tint2
