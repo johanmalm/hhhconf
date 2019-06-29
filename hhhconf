@@ -78,11 +78,11 @@ preview_pywal_colors () {
 	[[ -e $wal_colours ]] || { log "cannot find pywal colors" ; return; }
 	. "$wal_colours"
 	printf "%b\n" "[pywal colors]"
-	g_arr=($color0 $color1 $color3 $color4 $color5 $color6 $color7 $color8 $color9 $color10 $color11 $color12 $color13 $color14 $color15)
+	g_arr=( "$color0" "$color1" "$color3" "$color4" "$color5" "$color6" "$color7" "$color8" "$color9" "$color10" "$color11" "$color12" "$color13" "$color14" "$color15" )
 	for i in "${!g_arr[@]}"; do
 		set_color 7
 		printf "${g_print_col}%2d)  %s  " "$i" "${g_arr[i]}"
-		set_color ${g_arr[i]}
+		set_color "${g_arr[i]}"
 		printf "${g_print_col}%b\n" "███  "
 	done
 	set_color 7
@@ -115,8 +115,9 @@ tint2_set_active_task_bg () {
 }
 
 tint2_use_gtk_font () {
+	local font
 	backup
-	local font=$(hhhconf-gtkfont)
+	font=$(hhhconf-gtkfont)
 	hhhconf-t2 -F
 	hhhconf-t2 -p "task_font" "$font"
 	hhhconf-t2 -p "taskbar_name_font" "$font"
