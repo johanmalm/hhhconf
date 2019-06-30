@@ -4,6 +4,7 @@ enum state { INSIDE_TAG, OUTSIDE_TAG };
 static enum state state = OUTSIDE_TAG;
 static int found_theme_name;
 static char theme_name[256] = { 0 };
+#define PATH_MAX (1024)
 
 struct entry {
 	char color[16];
@@ -73,6 +74,21 @@ void process_themerc_file(const char *filename)
 		parse_themerc_line(line);
 	}
 	fclose(fp);
+}
+
+void find_themerc_file(char *themerc, const char *theme)
+{
+	struct stat sb;
+
+	snprintf(themerc, PATH_MAX, "%s/.themes/%s/openbox-3/themerc",
+		 getenv("HOME"), theme);
+	if (stat(themerc, &sb) == 0)
+		return;
+	snprintf(themerc, PATH_MAX, "/usr/share/themes/%s/openbox-3/themerc",
+		 theme);
+	if (stat(themerc, &sb) == 0)
+		return;
+	die("cannot find themerc file");
 }
 
 static void handle_text(char *text)
@@ -158,7 +174,7 @@ void process_xml_file(const char *filename)
 
 int main(int argc, char **argv)
 {
-	char themerc[1000];
+	char themerc[PATH_MAX];
 	int i;
 
 	if (argc < 2)
@@ -167,8 +183,7 @@ int main(int argc, char **argv)
 	if (theme_name[0] == '\0')
 		die("could not find theme name");
 	fprintf(stderr, "info: rc.xml obtheme '%s'\n", theme_name);
-	snprintf(themerc, sizeof(themerc), "%s/.themes/%s/openbox-3/themerc",
-		 getenv("HOME"), theme_name);
+	find_themerc_file(themerc, theme_name);
 	process_themerc_file(themerc);
 	for (i = 0; i < nr_entries; i++)
 		printf("%s\n", entries[i].color);

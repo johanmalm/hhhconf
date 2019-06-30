@@ -9,6 +9,7 @@
 #include <stdbool.h>
 #include <errno.h>
 #include <limits.h>
+#include <sys/stat.h>
 
 #define strlcpy _strlcpy
 void _strlcpy(char *dest, const char *src, size_t size);
