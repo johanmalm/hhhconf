@@ -107,7 +107,7 @@ static void add_line(char *line)
 
 	entry = add_entry();
 	strlcpy(entry->line, line, sizeof(entry->line));
-	split(line, &key, &value, '#');
+	split(line, &key, &value, '=');
 	if (!key || !value)
 		return;
 	strlcpy(entry->key, key, sizeof(entry->key));
