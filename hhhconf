@@ -21,6 +21,10 @@ xtype () {
 	type "$1" >/dev/null 2>&1 || die "depend on $1"
 }
 
+check_term_compatibility () {
+	[[ $TERM == *rxvt* ]] && die "terminal type 'rxvt' not supported"
+}
+
 read_sleep () {
 	read -rst "${1:-1}" -N 999
 	return 0
@@ -286,6 +290,7 @@ args() {
 
 main() {
 	xtype tint2
+	check_term_compatibility
 	g_palette="0"
 	if [[ $# -gt 0 ]]; then
 		args "$@"
