@@ -54,22 +54,6 @@ set_color () {
 	printf -v g_print_col '%b' "$_"
 }
 
-preview_terminal_colors () {
-	local count=0
-	local i
-	printf "%b\n" "[terminal colors]"
-	for i in {0..15}; do
-		set_color 7
-		printf "${g_print_col}%2d " "$count"
-		set_color $i
-		printf "${g_print_col}%b" "███  "
-		set_color 7
-		[[ $i -eq 7 ]] && printf "\n"
-		(( count++ ))
-	done
-	printf "\n"
-}
-
 set_pal_0_default () {
 	g_arr=( "#111111" "#111122" "#111133" "#111144" "#111155" "#112211" "#112222" "#112233" "#112244" "#112255" "#113311" )
 }
@@ -101,12 +85,19 @@ set_palette () {
 
 view_palette () {
 	# based on what's in g_arr
+	local count=0
 	local i
 	for i in "${!g_arr[@]}"; do
 		set_color 7
 		printf "${g_print_col}%2d)  %s  " "$i" "${g_arr[i]}"
 		set_color "${g_arr[i]}"
-		printf "${g_print_col}%b\n" "███  "
+		printf "${g_print_col}%b" "███  "
+		set_color 7
+		(( count++ ))
+		if [[ $count -eq 4 ]]; then
+			count=0
+			say ""
+		fi
 	done
 	set_color 7
 	say ""
