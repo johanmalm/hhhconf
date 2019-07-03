@@ -109,7 +109,7 @@ view_palette () {
 		printf "${g_print_col}%b\n" "███  "
 	done
 	set_color 7
-	printf "\n"
+	say ""
 }
 
 preview_colors () {
