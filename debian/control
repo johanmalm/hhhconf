@@ -11,3 +11,4 @@ Package: hhhconf
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}, bash
 Description: Config tool for tint2
+ Written for @hhhorb
