@@ -43,7 +43,7 @@ Set `background_color` associated with `task_active`
 hhhconf-t2 -s task_active background_color "#ff0000 100"
 ```
 
-Add missing *_font variables excl 'execp*' and 'button*'
+Add missing font variables excl those associated with 'execp' and 'button' plugins
 
 ```sh
 hhhconf-t2 -F
