@@ -8,6 +8,18 @@ Config tool for tint2. Written for @hhhorb
 make install
 ```
 
+## Scrot
+
+[![2019-06-29-214211_1024x600_scrot.md.png](https://cdn.scrot.moe/images/2019/06/29/2019-06-29-214211_1024x600_scrot.md.png)](https://scrot.moe/image/xY1U0)
+
+```sh
+hhhconf i <<< 0
+hhhconf f
+hhhconf 3o <<< 0
+hhhconf 3p <<< 2
+hhhconf 3nt <<< 5
+```
+
 ## Usage
 
 hhhconf is an interactive too, so just follow instructions.
