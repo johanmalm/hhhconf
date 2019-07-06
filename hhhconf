@@ -59,12 +59,20 @@ set_pal_0_default () {
 }
 
 set_pal_1_obtheme () {
-	g_arr=( $(hhhconf-obtheme $HOME/.config/openbox/rc.xml) )
+	g_arr=( $(hhhconf-obtheme $HOME/.config/openbox/bl-rc.xml) )
+	if [[ -z $g_arr ]]; then
+		log "loading default palette"
+		set_pal_0_default
+	fi
 }
 
 set_pal_2_pywal () {
 	local wal_colours="${HOME}/.cache/wal/colors.sh"
-	[[ -e $wal_colours ]] || { log "cannot find pywal colors" ; return; }
+	if [[ ! -e $wal_colours ]]; then
+		log "cannot find pywal colors; loading default palette"
+		set_pal_0_default
+		return
+	fi
 	. "$wal_colours"
 	printf "%b\n" "[pywal colors]"
 	g_arr=( "$color0" "$color1" "$color3" "$color4" "$color5" "$color6" "$color7" "$color8" "$color9" "$color10" "$color11" "$color12" "$color13" "$color14" "$color15" )
