@@ -93,12 +93,39 @@ set_pal_3_moonlight () {
 	g_arr=( "#1C2E35" "#21333B" "#233946" "#243E4E" "#274758" "#BC4B4F" )
 }
 
+hashify () {
+	# Add '#' to each colour in $raw_colors
+	# Curtail to 'rrggbb' - ignore any 'aa' which we sometimes get stuck on at end
+	for ((i=1;i<${#raw_colors[@]};i++)); do
+	    printf '#%.6s\n' "${raw_colors[i]}"
+	done
+}
+
+set_pal_4_nitrogen () {
+	local nitrogen_cache nitrogen_image line
+	nitrogen_cache="$HOME/.config/nitrogen/bg-saved.cfg"
+	[[ -e $nitrogen_cache ]] || die "cannot find ${nitrogen_cache}"
+	while read -r line; do
+		if [[ $line = *file* ]]; then
+			nitrogen_image="${line##*=}"
+		break
+		fi
+	done < "$nitrogen_cache"
+	[[ -z $nitrogen_image ]] && die "nitrogen/bg-saved.cfg contains no background image name"
+	echo -e "Getting palette from image $nitrogen_image..."
+	IFS=$'\n' read -d "" -ra raw_colors < <(convert "$nitrogen_image" -resize 25% -colors 16 -unique-colors txt:-)
+	raw_colors=("${raw_colors[@]//*\#}")
+	raw_colors=("${raw_colors[@]// *}")
+	g_arr=( $(hashify) )
+}
+
 set_palette () {
 	case $g_palette in
 		0) set_pal_0_default ;;
 		1) set_pal_1_obtheme ;;
 		2) set_pal_2_pywal ;;
 		3) set_pal_3_moonlight ;;
+		4) set_pal_4_nitrogen ;;
 	esac
 }
 
@@ -224,7 +251,7 @@ print_commands () {
 	say "[palette]"
 	set_color 7
 	say "  0 = default               1 = openbox theme         2 = pywal"
-	say "  3 = moonlight5"
+	say "  3 = moonlight5            4 = nitrogen image"
 	set_color 15
 	say "[tint2]"
 	set_color 7
@@ -249,6 +276,7 @@ process_command_string () {
 			1) g_palette="1" ; preview_colors ;;
 			2) g_palette="2" ; preview_colors ;;
 			3) g_palette="3" ; preview_colors ;;
+			4) g_palette="4" ; preview_colors ;;
 			f) tint2_use_gtk_font ;;
 			i) tint2_import ;;
 			t) hard_restart tint2 ;;
