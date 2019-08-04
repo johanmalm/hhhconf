@@ -8,6 +8,16 @@ Config tool for tint2. Written for @hhhorb
 make install
 ```
 
+## Usage
+
+hhhconf is an interactive too, so should be self explanatory.
+
+```
+hhhconf
+```
+
+Alternatively, use `hhhconf-t2` directly. Run with `-h` for full help message.
+
 ## Scrot
 
 [![2019-06-29-214211_1024x600_scrot.md.png](https://cdn.scrot.moe/images/2019/06/29/2019-06-29-214211_1024x600_scrot.md.png)](https://scrot.moe/image/xY1U0)
@@ -15,21 +25,14 @@ make install
 ```sh
 hhhconf i <<< 0
 hhhconf f
-hhhconf 3o <<< 0
-hhhconf 3p <<< 2
-hhhconf 3nt <<< 5
+hhhconf 3
+hhhconf o <<< 0
+hhhconf p <<< 2
+hhhconf n <<< 5
+hhhconf t
 ```
 
-## Usage
-
-hhhconf is an interactive too, so just follow instructions.
-
-```
-hhhconf
-```
-
-Alternatively, use `hhhconf-t2` directly. Run with `-h` for full help message.
-Here follow some examples:
+## Examples
 
 Get value of `task_font` (e.g. 'Sans 10')
 
