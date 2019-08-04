@@ -70,14 +70,16 @@ set_pal_0_default () {
 		"#aaaaaa" "#bbbbbb" "#cccccc"
 		"#dddddd" "#eeeeee" "#ffffff"
 	      )
+	write_palette_cache
 }
 
 set_pal_1_obtheme () {
 	g_arr=( $(hhhconf-obtheme $HOME/.config/openbox/bl-rc.xml) )
 	if [[ -z $g_arr ]]; then
 		log "loading default palette"
-		set_pal_0_default
+		return
 	fi
+	write_palette_cache
 }
 
 set_pal_2_pywal () {
@@ -90,10 +92,12 @@ set_pal_2_pywal () {
 	. "$wal_colours"
 	printf "%b\n" "[pywal colors]"
 	g_arr=( "$color0" "$color1" "$color3" "$color4" "$color5" "$color6" "$color7" "$color8" "$color9" "$color10" "$color11" "$color12" "$color13" "$color14" "$color15" )
+	write_palette_cache
 }
 
 set_pal_3_moonlight () {
 	g_arr=( "#1C2E35" "#21333B" "#233946" "#243E4E" "#274758" "#BC4B4F" )
+	write_palette_cache
 }
 
 hashify () {
@@ -120,6 +124,7 @@ set_pal_4_nitrogen () {
 	raw_colors=("${raw_colors[@]//*\#}")
 	raw_colors=("${raw_colors[@]// *}")
 	g_arr=( $(hashify) )
+	write_palette_cache
 }
 
 write_palette_cache () {
@@ -133,18 +138,6 @@ write_palette_cache () {
 read_palette_cache () {
 	[[ -e "$pal_cache_file" ]] || die "select palette first"
 	mapfile -t g_arr < "$pal_cache_file"
-}
-
-set_palette () {
-	case "$1" in
-		0) set_pal_0_default ;;
-		1) set_pal_1_obtheme ;;
-		2) set_pal_2_pywal ;;
-		3) set_pal_3_moonlight ;;
-		4) set_pal_4_nitrogen ;;
-	esac
-	write_palette_cache
-	view_palette
 }
 
 view_palette () {
@@ -167,11 +160,6 @@ view_palette () {
 	say ""
 }
 
-preview_colors () {
-	read_palette_cache
-	view_palette
-}
-
 # arr_{prompt,check} are helpers for g_arr
 arr_prompt () {
 	highest_number=${#g_arr[@]}
@@ -187,21 +175,21 @@ arr_check () {
 
 tint2_set_active_task_border () {
 	backup
-	preview_colors
+	read_palette_cache
 	arr_prompt ; read -r choice ; arr_check "$choice"
 	hhhconf-t2 -s task_active border_color "${g_arr[$choice]} 100"
 }
 
 tint2_set_panel_bg () {
 	backup
-	preview_colors
+	read_palette_cache
 	arr_prompt ; read -r choice ; arr_check "$choice"
 	hhhconf-t2 -s panel background_color "${g_arr[$choice]} 100"
 }
 
 tint2_set_active_task_bg () {
 	backup
-	preview_colors
+	read_palette_cache
 	arr_prompt ; read -r choice ; arr_check "$choice"
 	hhhconf-t2 -s task_active background_color "${g_arr[$choice]} 100"
 }
@@ -290,17 +278,18 @@ process_command_string () {
 	local c
 	for ((c=0;c<${#1};c++)); do
 		case "${1:$c:1}" in
-			0) set_palette 0 ;;
-			1) set_palette 1 ;;
-			2) set_palette 2 ;;
-			3) set_palette 3 ;;
-			4) set_palette 4 ;;
+			0) set_pal_0_default ; view_palette ;;
+			1) set_pal_1_obtheme ; view_palette ;;
+			2) set_pal_2_pywal ; view_palette ;;
+			3) set_pal_3_moonlight ; view_palette ;;
+			4) set_pal_4_nitrogen ; view_palette ;;
 			f) tint2_use_gtk_font ;;
 			i) tint2_import ;;
 			t) hard_restart tint2 ;;
 			n) tint2_set_active_task_border ;;
 			o) tint2_set_panel_bg ;;
 			p) tint2_set_active_task_bg ;;
+			v) read_palette_cache ; view_palette ;;
 			h|\?) print_commands ;;
 			q) return 1 ;;
 			'') ;;
