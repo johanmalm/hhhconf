@@ -4,6 +4,9 @@
 #
 # shellcheck disable=2154 source=/dev/null
 
+pal_cache_dir="$HOME/.cache/hhhconf"
+pal_cache_file="$pal_cache_dir/palette"
+
 die () {
 	printf '\033[31mfatal:\033[m %b\n' "$@" >&2
 	exit 1
@@ -119,6 +122,19 @@ set_pal_4_nitrogen () {
 	g_arr=( $(hashify) )
 }
 
+write_palette_cache () {
+	mkdir -p "$pal_cache_dir"
+	rm -f "$pal_cache_file"
+	for ((i=1;i<${#g_arr[@]};i++)); do
+	    printf '%b\n' "${g_arr[i]}" >>"$pal_cache_file"
+	done
+}
+
+read_palette_cache () {
+	[[ -e "$pal_cache_file" ]] || die "select palette first"
+	mapfile -t g_arr < "$pal_cache_file"
+}
+
 set_palette () {
 	case $g_palette in
 		0) set_pal_0_default ;;
@@ -127,6 +143,8 @@ set_palette () {
 		3) set_pal_3_moonlight ;;
 		4) set_pal_4_nitrogen ;;
 	esac
+	write_palette_cache
+	view_palette
 }
 
 view_palette () {
@@ -150,7 +168,7 @@ view_palette () {
 }
 
 preview_colors () {
-	set_palette
+	read_palette_cache
 	view_palette
 }
 
@@ -272,11 +290,11 @@ process_command_string () {
 	local c
 	for ((c=0;c<${#1};c++)); do
 		case "${1:$c:1}" in
-			0) g_palette="0" ; preview_colors ;;
-			1) g_palette="1" ; preview_colors ;;
-			2) g_palette="2" ; preview_colors ;;
-			3) g_palette="3" ; preview_colors ;;
-			4) g_palette="4" ; preview_colors ;;
+			0) g_palette="0" ; set_palette ;;
+			1) g_palette="1" ; set_palette ;;
+			2) g_palette="2" ; set_palette ;;
+			3) g_palette="3" ; set_palette ;;
+			4) g_palette="4" ; set_palette ;;
 			f) tint2_use_gtk_font ;;
 			i) tint2_import ;;
 			t) hard_restart tint2 ;;
