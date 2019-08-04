@@ -22,13 +22,30 @@ Alternatively, use `hhhconf-t2` directly. Run with `-h` for full help message.
 
 [![2019-06-29-214211_1024x600_scrot.md.png](https://cdn.scrot.moe/images/2019/06/29/2019-06-29-214211_1024x600_scrot.md.png)](https://scrot.moe/image/xY1U0)
 
+Reproduce by taking the step below.
+
+Although these steps have been written to be run from a bash command line, each
+instruction (e.g. i, f, 3) can be run at the interactive hhhconf prompt.
+
+The `<<< x` syntax means that we supply `x` to a follow-up question.
+
 ```sh
+# import a tint2rc config file (one with task background and border colours)
 hhhconf i <<< 0
+
+# set whatever font gtk3 uses (e.g. what you've set with lxappearance)
 hhhconf f
+
+# Use palette number 3 (which is just a hard coded palette).
+# Use 4 instead if you want to base the palette your nitrogen wallpaper
 hhhconf 3
+
+# Set panel and task colours
 hhhconf o <<< 0
 hhhconf p <<< 2
 hhhconf n <<< 5
+
+# Restart tint2
 hhhconf t
 ```
 
