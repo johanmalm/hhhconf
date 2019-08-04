@@ -254,19 +254,23 @@ hard_restart () {
 
 print_commands () {
 	set_color 15
-	say "[palette]"
+	say "[set palette based on]"
 	set_color 7
-	say "  0 = default               1 = openbox theme         2 = pywal"
-	say "  3 = moonlight5            4 = nitrogen image"
+	say "  0 = default             1 = openbox theme       2 = pywal"
+	say "  3 = moonlight5          4 = nitrogen image"
 	set_color 15
 	say "[tint2]"
 	set_color 7
-	say "  f = use gtk3 font         i = import configs        t = restart"
-	say "  n = active task border    p = active task bg col    o = panel bg col"
+	say "  i = import tint2rc configs from github"
+	say "  f = set font based on gtk3"
+	say "  n = set active task border colour"
+	say "  p = set active task background colour"
+	say "  o = set panel background colour"
+	say "  t = restart"
 	set_color 15
 	say "[general]"
 	set_color 7
-	say "  h = help                  q = quit"
+	say "  h = help                v = view palette        q = quit"
 }
 
 bad_command () {
