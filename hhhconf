@@ -125,7 +125,7 @@ set_pal_4_nitrogen () {
 write_palette_cache () {
 	mkdir -p "$pal_cache_dir"
 	rm -f "$pal_cache_file"
-	for ((i=1;i<${#g_arr[@]};i++)); do
+	for ((i=0;i<${#g_arr[@]};i++)); do
 	    printf '%b\n' "${g_arr[i]}" >>"$pal_cache_file"
 	done
 }
@@ -136,7 +136,7 @@ read_palette_cache () {
 }
 
 set_palette () {
-	case $g_palette in
+	case "$1" in
 		0) set_pal_0_default ;;
 		1) set_pal_1_obtheme ;;
 		2) set_pal_2_pywal ;;
@@ -290,11 +290,11 @@ process_command_string () {
 	local c
 	for ((c=0;c<${#1};c++)); do
 		case "${1:$c:1}" in
-			0) g_palette="0" ; set_palette ;;
-			1) g_palette="1" ; set_palette ;;
-			2) g_palette="2" ; set_palette ;;
-			3) g_palette="3" ; set_palette ;;
-			4) g_palette="4" ; set_palette ;;
+			0) set_palette 0 ;;
+			1) set_palette 1 ;;
+			2) set_palette 2 ;;
+			3) set_palette 3 ;;
+			4) set_palette 4 ;;
 			f) tint2_use_gtk_font ;;
 			i) tint2_import ;;
 			t) hard_restart tint2 ;;
@@ -339,9 +339,8 @@ args() {
 }
 
 main() {
-	xtype tint2
+	xtype tint2 convert
 	check_term_compatibility
-	g_palette="0"
 	if [[ $# -gt 0 ]]; then
 		args "$@"
 	else
