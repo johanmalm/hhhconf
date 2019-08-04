@@ -8,6 +8,13 @@ Config tool for tint2. Written for @hhhorb
 make install
 ```
 
+or
+
+```
+wget https://github.com/johanmalm/hhhconf/releases/download/v0.02/hhhconf_0.02-1_amd64.deb
+dpkg -i hhhconf_0.02-1_amd64.deb
+```
+
 ## Usage
 
 hhhconf is an interactive too, so should be self explanatory.
